@@ -1,0 +1,45 @@
+! Red de comercio: 10.1.0.0/17 (Wildcard = 0.0.127.255)
+! Red de soporte: 10.1.128.0/17 (Wildcard = 0.0.127.255)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Comercio
+!! Los servidores no pueden enviar/recibir paquetes a/desde Internet, de ningún tipo.
+access-list 100 deny ip host 10.1.0.4 host 8.8.8.8
+access-list 100 deny ip host 8.8.8.8 host 10.1.0.4
+
+!! Los demás ordenadores pueden acceder a Internet, pero solo se permiten conexiones TCP salientes. No se permite intercambio UDP con Internet
+access-list 100 permit tcp 10.1.0.0 0.0.127.255 eq 53 8.8.8.8 0.255.255.255
+access-list 100 deny udp 10.1.0.0 0.0.127.255 host 8.8.8.8
+
+!! Los ordenadores de comercio pueden intercambiar cualquier paquete con el servidor de comercio. No pueden acceder al servidor de soporte.
+access-list 100 deny ip 10.1.0.0 0.0.127.255 host 10.1.128.4 
+
+!! Los ordenadores de soporte y comercio no pueden intercambiar paquetes.
+access-list 100 deny ip 10.1.0.0 0.0.127.255 10.1.128.0 0.0.127.255
+
+!! Los servidores pueden intercambiar entre sı́ cualquier paquete
+access-list 100 permit ip 10.1.0.4 0.0.127.255 host 10.1.128.4 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Soporte
+!! Los servidores no pueden enviar/recibir paquetes a/desde Internet, de ningún tipo.
+access-list 101 deny ip host 10.1.128.4 host 8.8.8.8
+access-list 101 deny ip host 8.8.8.8 host 10.1.128.4
+
+!! Los demás ordenadores pueden acceder a Internet, pero solo se permiten conexiones TCP salientes. No se permite intercambio UDP con Internet
+access-list 101 permit tcp 10.1.128.0 0.0.127.255 eq 53 8.8.8.8 0.255.255.255
+access-list 101 deny udp 10.1.128.0 0.0.127.255 host 8.8.8.8
+
+!! Los ordenadores de soporte pueden intercambiar cualquier paquete con el servidor de comercio y el servidor de soporte
+access-list 101 permit ip 10.1.128.0 0.0.127.255 host 10.1.0.4
+
+!! Los ordenadores de soporte y comercio no pueden intercambiar paquetes.
+access-list 101 deny ip 10.1.128.0 0.0.127.255 10.1.0.0 0.0.127.255
+
+!! Los servidores pueden intercambiar entre sı́ cualquier paquete
+access-list 101 permit ip 10.1.128.4 0.0.127.255 host 10.1.0.4
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! Internet
+!! Denegar todo lo que entre del servidor de internet hacia dentro
+access-list 102 deny tcp any 8.8.8.8 0.255.255.255
+access-list 102 deny udp any 8.8.8.8 0.255.255.255
